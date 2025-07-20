@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finance App</title>
+    <script>
+        // GitHub Pages SPA redirect
+        // This script redirects the user to the index.html page with the current path as a hash
+        // This allows the React Router to handle the routing client-side
+        var pathSegmentsToKeep = 1;
+        var l = window.location;
+        l.replace(
+            l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
+            l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/') + '/#' +
+            l.pathname.slice(1).split('/').slice(pathSegmentsToKeep).join('/') +
+            (l.search ? '&' + l.search.slice(1) : '')
+        );
+    </script>
+</head>
+<body>
+    <p>Redirecting...</p>
+</body>
+</html>
