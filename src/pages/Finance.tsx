@@ -30,6 +30,22 @@ const Finance: React.FC = () => {
     setTransactions(data || []);
   }
 
+  const callPlaidFunction = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('plaid', {
+        body: {}
+      });
+
+      if (error) {
+        console.error("Error calling plaid function:", error);
+      } else {
+        console.log("Plaid function response:", data);
+      }
+    } catch (err) {
+      console.error("Caught error:", err);
+    }
+  };
+
   
   const handleClick = async (e: any) => {
     e.preventDefault();
@@ -68,6 +84,7 @@ const Finance: React.FC = () => {
     <div>
       <h1>Finance Page</h1>
       <button onClick={handleClick}>Click Me</button>
+      <button onClick={callPlaidFunction}>Call Plaid Function</button>
       <button onClick={logout}>Sign Out</button>
       <ul>
         {transactions.map((tx) => (
