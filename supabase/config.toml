@@ -341,3 +341,36 @@ entrypoint = "./functions/plaid/index.ts"
 # Specifies static files to be bundled with the function. Supports glob patterns.
 # For example, if you want to serve static HTML pages in your function:
 # static_files = [ "./functions/plaid/*.html" ]
+
+[functions.create-link-token]
+enabled = true
+verify_jwt = true
+import_map = "./functions/create-link-token/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/create-link-token/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/create-link-token/*.html" ]
+
+[functions.exchange-token-and-fetch-transactions]
+enabled = true
+verify_jwt = true
+import_map = "./functions/exchange-token-and-fetch-transactions/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/exchange-token-and-fetch-transactions/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/exchange-token-and-fetch-transactions/*.html" ]
+
+[functions.fetch-transactions]
+enabled = true
+verify_jwt = true
+import_map = "./functions/fetch-transactions/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/fetch-transactions/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/fetch-transactions/*.html" ]

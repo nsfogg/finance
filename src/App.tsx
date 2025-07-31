@@ -1,12 +1,14 @@
-import { HashRouter, Routes, Route } from 'react-router-dom'
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Finance from './pages/Finance';
 import Login from './pages/Login';
 import { useEffect, useState } from 'react';
 import { supabase } from './supabaseClient';
+import Connect from './pages/Connect';
 
 
 function App() {
     const [session, setSession] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
 
     const fetchSession = async () => {
         const currentSession = await supabase.auth.getSession();
@@ -19,6 +21,7 @@ function App() {
 
         const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
             setSession(session);
+            setLoading(false);
         });
 
         // Cleanup the auth listener on component unmount
@@ -27,19 +30,31 @@ function App() {
             authListener.subscription.unsubscribe();
         }
     }, [])
+
+    // Show loading while checking session
+    if (loading) {
+        console.log("Loading session...");
+        return <div>Loading...</div>;
+    }
+
     return(
         <>
-            {session ? (
-                <HashRouter>
-                    <Routes> 
-                        <Route path="/" element={<Finance />} />
-                        {/* Add more routes as needed */}
-                    </Routes>
-                </HashRouter>
-            ) : (
-                <Login />
-            )}
-
+            <HashRouter>
+                <Routes>
+                    {session ? (
+                        <>
+                            <Route path="/" element={<Finance />} />
+                            <Route path="/connect" element={<Connect />} />
+                            <Route path="/login" element={<Navigate to="/" replace />} />
+                        </>
+                    ) : (
+                        <>
+                            <Route path="/login" element={<Login />} />
+                            <Route path="*" element={<Navigate to="/login" replace />} />
+                        </>
+                    )}
+                </Routes>
+            </HashRouter>
         </>
     );
 }
