@@ -9,7 +9,6 @@ const Connect: React.FC = () => {
   const [publicToken, setPublicToken] = useState<string | null>(null);
   const [itemId, setItemId] = useState<string>(''); // For demo purposes
   const [connectLoading, setConnectLoading] = useState(false);
-  const [transactionLoading, setTransactionLoading] = useState(false);
   const [newTransactions, setNewTransactions] = useState<number>();
 
   const fetchLinkToken = async () => {
