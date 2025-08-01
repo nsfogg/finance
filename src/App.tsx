@@ -4,6 +4,7 @@ import Login from './pages/Login';
 import { useEffect, useState } from 'react';
 import { supabase } from './supabaseClient';
 import Connect from './pages/Connect';
+import Goals from './pages/Goals';
 
 
 function App() {
@@ -45,7 +46,7 @@ function App() {
                         <>
                             <Route path="/" element={<Finance />} />
                             <Route path="/connect" element={<Connect />} />
-                            <Route path="/login" element={<Navigate to="/" replace />} />
+                            <Route path="/goals" element={<Goals />} />
                         </>
                     ) : (
                         <>
