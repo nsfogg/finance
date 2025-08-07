@@ -28,7 +28,7 @@ interface Category {
 }
 
 interface CategoryGroup {
-  weeklyAllocation: number; // Store as weekly rate
+  weeklyAllocation?: number; // Store as weekly rate
   custom_category: string;
   subcategories: string[];
   count: number;
@@ -39,16 +39,6 @@ type BudgetPeriod = 'weekly' | 'monthly' | 'yearly';
 const Goals: React.FC = () => {
   const [weeklyIncome, setWeeklyIncome] = useState<number>(0); // Store as weekly rate
   const [budgetPeriod, setBudgetPeriod] = useState<BudgetPeriod>('monthly');
-  const [budgetCategories, setBudgetCategories] = useState<BudgetCategory[]>([
-    { id: '1', name: 'Housing', amount: 0, color: '#4299e1' },
-    { id: '2', name: 'Food & Dining', amount: 0, color: '#38a169' },
-    { id: '3', name: 'Transportation', amount: 0, color: '#ed8936' },
-    { id: '4', name: 'Entertainment', amount: 0, color: '#9f7aea' },
-    { id: '5', name: 'Shopping', amount: 0, color: '#e53e3e' },
-    { id: '6', name: 'Utilities', amount: 0, color: '#00b3e6' },
-    { id: '7', name: 'Healthcare', amount: 0, color: '#48bb78' },
-    { id: '8', name: 'Savings', amount: 0, color: '#38b2ac' },
-  ]);
   const [savingsGoals, setSavingsGoals] = useState<SavingsGoal[]>([
     {
       id: '1',
@@ -84,8 +74,6 @@ const Goals: React.FC = () => {
   });
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [categories, setCategories] = useState<Category[]>([]);
   const [categoryGroups, setCategoryGroups] = useState<CategoryGroup[]>([]);
   const [categoriesLoading, setCategoriesLoading] = useState(false);
   const [showAddCategory, setShowAddCategory] = useState(false);
@@ -101,7 +89,6 @@ const Goals: React.FC = () => {
     subcategories: string[];
   } | null>(null);
   const [deleting, setDeleting] = useState(false);
-  const [categoryAllocations, setCategoryAllocations] = useState<Record<string, number>>({});
 
   // Add new state for input display values
   const [incomeDisplay, setIncomeDisplay] = useState<string>('0.00');
@@ -139,7 +126,6 @@ const Goals: React.FC = () => {
 
       if (!userId) {
         console.error('No user found');
-        setLoading(false);
         return;
       }
 
@@ -177,13 +163,10 @@ const Goals: React.FC = () => {
           return acc;
         }, {} as Record<string, number>);
 
-        setCategoryAllocations(weeklyAllocations);
       }
 
     } catch (error) {
       console.error('Error loading goals data:', error);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -209,7 +192,6 @@ const Goals: React.FC = () => {
 
       if (categoriesError) {
         console.error("Error fetching categories:", categoriesError);
-        setCategories([]);
         setCategoryGroups([]);
         return;
       }
@@ -234,8 +216,6 @@ const Goals: React.FC = () => {
       }, {} as Record<string, number>);
 
       // Update state
-      setCategories(categoriesData || []);
-      setCategoryAllocations(weeklyAllocations);
       
       // Group categories with weekly allocations
       const grouped = groupCategoriesWithAllocations(categoriesData || [], weeklyAllocations);
@@ -285,34 +265,6 @@ const Goals: React.FC = () => {
     } finally {
       setDeleting(false);
     }
-  };
-
-  const groupCategories = (categoriesData: Category[]): CategoryGroup[] => {
-    const grouped = categoriesData.reduce((acc, category) => {
-      const existing = acc.find(group => group.custom_category === category.custom_category);
-      
-      if (existing) {
-        if (!existing.subcategories.includes(category.subcategory)) {
-          existing.subcategories.push(category.subcategory);
-        }
-        existing.count += 1;
-      } else {
-        acc.push({
-          custom_category: category.custom_category,
-          subcategories: [category.subcategory],
-          count: 1
-        });
-      }
-      
-      return acc;
-    }, [] as CategoryGroup[]);
-
-    // Sort subcategories within each group
-    grouped.forEach(group => {
-      group.subcategories.sort();
-    });
-
-    return grouped;
   };
 
   // Fix the updateTransactionsWithNewCategory function to properly count updated rows
@@ -416,12 +368,6 @@ const Goals: React.FC = () => {
       setCategoryMessage('Category added successfully! 🎉');
       setNewCategory({ custom_category: '', subcategory: '' });
       setShowAddCategory(false);
-
-      // Update existing transactions with the new custom category
-      const updatedTransactions = await updateTransactionsWithNewCategory(
-        newCategory.custom_category.trim(),
-        newCategory.subcategory.trim()
-      );
       
       // Refresh categories list
       await fetchCategories();
@@ -522,11 +468,6 @@ const Goals: React.FC = () => {
           : group
       )
     );
-    
-    setCategoryAllocations(prev => ({
-      ...prev,
-      [custom_category]: weeklyAmount
-    }));
 
     // Update display to show properly formatted value
     setAllocationDisplays(prev => ({
@@ -777,7 +718,12 @@ const Goals: React.FC = () => {
           totalUpdatedTransactions += updatedCount;
         } catch (error) {
           console.error(`Error updating transactions for ${cat.custom_category} - ${cat.subcategory}:`, error);
-          updateResults.push({ category: cat.custom_category, subcategory: cat.subcategory, count: 0, error: error.message });
+          updateResults.push({ 
+            category: cat.custom_category, 
+            subcategory: cat.subcategory, 
+            count: 0, 
+            error: typeof error === 'object' && error !== null && 'message' in error ? (error as { message: string }).message : String(error)
+          });
         }
       }
 
@@ -803,7 +749,10 @@ const Goals: React.FC = () => {
 
     } catch (error) {
       console.error('Error adding default categories:', error);
-      setCategoryMessage(`Error adding default categories: ${error.message}`);
+      const errorMsg = typeof error === 'object' && error !== null && 'message' in error
+        ? (error as { message: string }).message
+        : String(error);
+      setCategoryMessage(`Error adding default categories: ${errorMsg}`);
       setTimeout(() => setCategoryMessage(null), 5000);
     } finally {
       setAddingCategory(false);
@@ -1000,7 +949,7 @@ const Goals: React.FC = () => {
         !categoriesLoading && categoryGroups.length > 0 && (
           <div className="categories-overview">
             <div className="categories-list">
-              {categoryGroups.map((group, index) => (
+              {categoryGroups.map((group) => (
                 <div key={group.custom_category} className="category-group">
                   <div className="category-header">
                     <div className="category-main">
@@ -1061,27 +1010,6 @@ const Goals: React.FC = () => {
     </div>
   );
 
-  const setCategoryAllocation = (custom_category: string, amount: number) => {
-    setCategoryGroups(prevGroups =>
-      prevGroups.map(group =>
-        group.custom_category === custom_category
-          ? { ...group, allocation: amount }
-          : group
-      )
-    );
-    
-    // Also update the allocations state
-    setCategoryAllocations(prev => ({
-      ...prev,
-      [custom_category]: amount
-    }));
-  }
-
-  const updateBudgetCategory = (id: string, amount: number) => {
-    setBudgetCategories(prev => 
-      prev.map(cat => cat.id === id ? { ...cat, amount } : cat)
-    );
-  };
 
   const getTotalBudget = () => {
     const totalWeeklyBudget = categoryGroups.reduce((sum, group) => sum + (group.weeklyAllocation || 0), 0);
@@ -1289,7 +1217,6 @@ const Goals: React.FC = () => {
         const displayAmount = parseFloat(allocationDisplays[group.custom_category] || '0') || 0;
         newWeeklyAllocations[group.custom_category] = convertDisplayToWeekly(displayAmount);
       });
-      setCategoryAllocations(newWeeklyAllocations);
 
       console.log('Budget saved successfully with weekly conversions!');
       setSaveMessage('Budget saved successfully! 💾');

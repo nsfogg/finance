@@ -21,8 +21,6 @@ type TimePeriod = 'weekly' | 'monthly' | 'yearly';
 
 const Budget: React.FC<BudgetProps> = () => {
   const [categoryBudgets, setCategoryBudgets] = useState<CategoryBudget[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [totalIncome, setTotalIncome] = useState(0);
   const [timePeriod, setTimePeriod] = useState<TimePeriod>('weekly');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [startPeriod, setStartPeriod] = useState(new Date());
@@ -108,64 +106,13 @@ const Budget: React.FC<BudgetProps> = () => {
     return Math.ceil(diffWeeks);
   };
 
-  // Alternative approach - calculate weeks more precisely
-  const getWeeksBetweenDatesAlternative = (startDate: Date, endDate: Date): number => {
-    // Create new dates to avoid modifying originals
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    
-    // Set both to start of day for consistent comparison
-    start.setHours(0, 0, 0, 0);
-    end.setHours(0, 0, 0, 0);
-    
-    // Calculate the difference in milliseconds
-    const diffTime = end.getTime() - start.getTime();
-    
-    // Convert to weeks and round up
-    const diffWeeks = Math.ceil(diffTime / (1000 * 60 * 60 * 24 * 7));
-    
-    // Ensure we count at least 1 week if end date is after start date
-    return Math.max(diffWeeks, end >= start ? 1 : 0);
-  };
-
-  // Update the calculateTotalAllocations function
-  const calculateTotalAllocations = (weeklyAmount: number, goalCreatedAt: string, periodEndDate: Date): number => {
-    const goalStart = new Date(goalCreatedAt);
-    
-    // If the period end date is before the goal was created, return 0
-    if (periodEndDate < goalStart) {
-      return 0;
-    }
-    
-    // Calculate weeks from goal start to the END of the current period
-    const weeksElapsed = getWeeksBetweenDates(goalStart, periodEndDate);
-    return weeklyAmount * weeksElapsed;
-  };
-
-  const calculatePeriodSpent = (category: string, transactions: any[], startDate: Date, endDate: Date): number => {
-    console.log("Calculating period spent for category:", category);
-    console.log("Start date:", startDate, "End date:", endDate);
-    
-    const periodTransactions = transactions.filter(tx => 
-      tx.custom_category === category && 
-      new Date(tx.date) >= startDate && 
-      new Date(tx.date) <= endDate
-    );
-    
-    console.log("Transactions during this period:", periodTransactions);
-    
-    return periodTransactions.reduce((total, tx) => total + tx.amount, 0);
-  };
-
   // Update the loadBudgetData function to calculate totalTransactions up to the period end date
   const loadBudgetData = async () => {
-    setLoading(true);
     const { data: sessionData } = await supabase.auth.getSession();
     const userId = sessionData?.session?.user?.id;
 
     if (!userId) {
       console.error("No user found");
-      setLoading(false);
       return;
     }
 
@@ -186,7 +133,6 @@ const Budget: React.FC<BudgetProps> = () => {
 
       if (goalsError) {
         console.error('Error loading budget data:', goalsError);
-        setLoading(false);
         return;
       }
 
@@ -394,31 +340,10 @@ const Budget: React.FC<BudgetProps> = () => {
       budgets.sort((a, b) => a.custom_category.localeCompare(b.custom_category));
 
       setCategoryBudgets(budgets);
-      setTotalIncome(income);
 
     } catch (error) {
       console.error('Error in loadBudgetData:', error);
-    } finally {
-      setLoading(false);
     }
-  };
-
-  // Update the helper functions
-  const getTotalAllocated = () => {
-    return categoryBudgets.reduce((sum, cat) => sum + cat.allocationThisPeriod, 0);
-  };
-
-  const getTotalSpent = () => {
-    return categoryBudgets.reduce((sum, cat) => sum + cat.transactionsThisPeriod, 0);
-  };
-
-  const getTotalBalance = () => {
-    return categoryBudgets.reduce((sum, cat) => sum + cat.balance, 0);
-  };
-
-  const getBudgetPercentage = (spent: number, allocation: number) => {
-    if (allocation === 0) return 0;
-    return Math.min((spent / allocation) * 100, 100);
   };
 
   const formatDateRange = () => {
@@ -436,15 +361,6 @@ const Budget: React.FC<BudgetProps> = () => {
       return `${startPeriod.toLocaleDateString('en-US', options)} - ${endPeriod.toLocaleDateString('en-US', options)}`;
     }
   };
-
-  if (loading) {
-    return (
-      <div className="budget-loading">
-        <div className="budget-loading-spinner"></div>
-        <p>Loading budget data...</p>
-      </div>
-    );
-  }
 
   // Update the display section
   return (
