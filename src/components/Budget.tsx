@@ -186,13 +186,9 @@ const Budget: React.FC<BudgetProps> = () => {
 
       // Process the data
       const budgets: CategoryBudget[] = [];
-      let income = 0;
 
       // Get income from most recent record
       const incomeRecord = goalsData?.find(item => !item.category && item.income);
-      if (incomeRecord) {
-        income = incomeRecord.income;
-      }
 
       // Get unique categories
       const allCategories = new Set<string>();

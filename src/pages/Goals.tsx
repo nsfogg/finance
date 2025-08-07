@@ -3,13 +3,6 @@ import { supabase } from '../supabaseClient';
 import { useNavigate } from 'react-router-dom';
 import '../styles/Goals.css';
 
-interface BudgetCategory {
-  id: string;
-  name: string;
-  amount: number;
-  color: string;
-}
-
 interface SavingsGoal {
   id: string;
   name: string;
@@ -154,15 +147,6 @@ const Goals: React.FC = () => {
 
       if (categoryError) {
         console.error('Error loading category data:', categoryError);
-      } else if (categoryData) {
-        // Store weekly allocations
-        const weeklyAllocations = categoryData.reduce((acc, item) => {
-          if (item.category && item.amount !== null) {
-            acc[item.category] = item.amount; // Already stored as weekly
-          }
-          return acc;
-        }, {} as Record<string, number>);
-
       }
 
     } catch (error) {
