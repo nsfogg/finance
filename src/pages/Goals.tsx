@@ -139,7 +139,7 @@ const Goals: React.FC = () => {
       }
 
       // Get all category allocations (stored as weekly rates)
-      const { data: categoryData, error: categoryError } = await supabase
+      const { error: categoryError } = await supabase
         .from('goals')
         .select('category, amount')
         .eq('user_id', userId)
