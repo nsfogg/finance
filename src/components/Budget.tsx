@@ -355,7 +355,70 @@ const Budget: React.FC<BudgetProps> = () => {
     }
   };
 
-  // Update the display section
+  // Add these interfaces and state at the top of your Budget component
+
+interface TransactionDetail {
+  id: string;
+  amount: number;
+  date: string;
+  merchant_name?: string;
+}
+
+interface CategoryDetailModal {
+  show: boolean;
+  category: CategoryBudget | null;
+  transactions: TransactionDetail[];
+  startingBalance: number;
+}
+
+// Add this state variable with your other useState declarations
+const [categoryDetail, setCategoryDetail] = useState<CategoryDetailModal>({
+  show: false,
+  category: null,
+  transactions: [],
+  startingBalance: 0
+});
+
+// Add this function to load transaction details
+const loadCategoryDetails = async (category: CategoryBudget) => {
+  const { data: sessionData } = await supabase.auth.getSession();
+  const userId = sessionData?.session?.user?.id;
+
+  if (!userId) return;
+
+  try {
+    // Get transactions for this category in the current period
+    const { data: transactions, error } = await supabase
+      .from('transactions')
+      .select('id, amount, date, name, merchant_name')
+      .eq('user_id', userId)
+      .eq('custom_category', category.custom_category)
+      .gte('date', startPeriod.toISOString())
+      .lte('date', endPeriod.toISOString())
+      .gte('amount', 0) // Only expenses
+      .order('date', { ascending: true });
+
+    if (error) {
+      console.error('Error loading category transactions:', error);
+      return;
+    }
+
+    // Calculate starting balance (balance at start of period)
+    const startingBalance = category.balance + category.transactionsThisPeriod - category.allocationThisPeriod;
+
+    setCategoryDetail({
+      show: true,
+      category,
+      transactions: transactions || [],
+      startingBalance
+    });
+
+  } catch (error) {
+    console.error('Error loading category details:', error);
+  }
+};
+
+  // Replace your return statement with this updated JSX:
   return (
     <div className="budget-container">
       {/* Time Period Controls */}
@@ -383,6 +446,95 @@ const Budget: React.FC<BudgetProps> = () => {
         </div>
       </div>
 
+      {/* Category Detail Modal */}
+      {categoryDetail.show && (
+        <div className="delete-overlay" onClick={() => setCategoryDetail({ show: false, category: null, transactions: [], startingBalance: 0 })}>
+          <div className="delete-dialog" onClick={(e) => e.stopPropagation()}>
+            <div className="delete-header">
+              <h4>
+                📊 {categoryDetail.category?.custom_category} Details
+              </h4>
+            </div>
+            
+            <div className="delete-content">
+              <div className="category-detail-summary">
+                <div className="balance-section">
+                  <h5>💰 Balance at Start of Period</h5>
+                  <div className="balance-amount">
+                    ${categoryDetail.startingBalance.toFixed(2)}
+                  </div>
+                </div>
+                
+                <div className="allocation-section">
+                  <h5>📈 Period Allocation</h5>
+                  <div className="allocation-amount positive">
+                    +${categoryDetail.category?.allocationThisPeriod.toFixed(2)}
+                  </div>
+                </div>
+              </div>
+
+              <div className="transactions-section">
+                <h5>🛒 Transactions This Period ({categoryDetail.transactions.length})</h5>
+                {categoryDetail.transactions.length === 0 ? (
+                  <div className="no-transactions">
+                    <p>No transactions found for this period.</p>
+                  </div>
+                ) : (
+                  <div className="transactions-list">
+                    {categoryDetail.transactions.map((transaction) => (
+                      <div key={transaction.id} className="transaction-item">
+                        <div className="transaction-info">
+                          <div className="transaction-merchant">
+                            {transaction.merchant_name || transaction.name}
+                          </div>
+                          <div className="transaction-date">
+                            {new Date(transaction.date).toLocaleDateString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric'
+                            })}
+                          </div>
+                        </div>
+                        <div className="transaction-amount negative">
+                          -${transaction.amount.toFixed(2)}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                
+                {categoryDetail.transactions.length > 0 && (
+                  <div className="transactions-total">
+                    <strong>
+                      Total Spent: -${categoryDetail.transactions.reduce((sum, tx) => sum + tx.amount, 0).toFixed(2)}
+                    </strong>
+                  </div>
+                )}
+              </div>
+
+              <div className="current-balance-section">
+                <h5>🎯 Current Balance</h5>
+                <div className={`current-balance ${categoryDetail.category?.balance && categoryDetail.category.balance < 0 ? 'negative' : 'positive'}`}>
+                  ${categoryDetail.category?.balance.toFixed(2)}
+                </div>
+                <div className="balance-calculation">
+                  ${categoryDetail.startingBalance.toFixed(2)} + ${categoryDetail.category?.allocationThisPeriod.toFixed(2)} - ${categoryDetail.transactions.reduce((sum, tx) => sum + tx.amount, 0).toFixed(2)} = ${categoryDetail.category?.balance.toFixed(2)}
+                </div>
+              </div>
+            </div>
+            
+            <div className="delete-actions">
+              <button 
+                className="delete-cancel-btn"
+                onClick={() => setCategoryDetail({ show: false, category: null, transactions: [], startingBalance: 0 })}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Budget Categories */}
       {categoryBudgets.length === 0 ? (
         <div className="budget-empty">
@@ -396,7 +548,11 @@ const Budget: React.FC<BudgetProps> = () => {
       ) : (
         <div className="budget-categories">
           {categoryBudgets.map((category) => (
-            <div key={category.custom_category} className="budget-category">
+            <div 
+              key={category.custom_category} 
+              className="budget-category clickable"
+              onClick={() => loadCategoryDetails(category)}
+            >
               <div className="budget-category-header">
                 <h3>{category.custom_category}</h3>
                 <div className="budget-category-amounts">
@@ -420,6 +576,11 @@ const Budget: React.FC<BudgetProps> = () => {
                   ${category.weeklyAllocation.toFixed(2)}/week
                 </span>
                 
+              </div>
+              
+              {/* Click indicator */}
+              <div className="click-indicator">
+                Click to view details →
               </div>
             </div>
           ))}

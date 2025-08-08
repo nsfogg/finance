@@ -703,72 +703,217 @@
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
-/* Responsive Updates for Compact Design */
+/* Add these styles for the category detail modal */
+
+/* Make budget categories clickable */
+.budget-category.clickable {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.budget-category.clickable:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  border-color: #68d391;
+}
+
+.click-indicator {
+  position: absolute;
+  bottom: 0.5rem;
+  right: 1rem;
+  font-size: 0.7rem;
+  color: #68d391;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.budget-category.clickable:hover .click-indicator {
+  opacity: 1;
+}
+
+/* Category Detail Modal Content */
+.category-detail-summary {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: rgba(74, 85, 104, 0.2);
+  border-radius: 8px;
+}
+
+.balance-section,
+.allocation-section {
+  flex: 1;
+  text-align: center;
+}
+
+.balance-section h5,
+.allocation-section h5,
+.transactions-section h5,
+.current-balance-section h5 {
+  margin: 0 0 0.5rem 0;
+  color: #a0aec0;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.balance-amount,
+.allocation-amount,
+.current-balance {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.balance-amount {
+  color: #4299e1;
+}
+
+.allocation-amount.positive {
+  color: #68d391;
+}
+
+.current-balance.positive {
+  color: #68d391;
+}
+
+.current-balance.negative {
+  color: #fc8181;
+}
+
+/* Transactions Section */
+.transactions-section {
+  margin-bottom: 1.5rem;
+}
+
+.transactions-list {
+  max-height: 250px;
+  overflow-y: auto;
+  border: 1px solid #4a5568;
+  border-radius: 6px;
+  background: rgba(26, 32, 44, 0.5);
+}
+
+.transaction-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #4a5568;
+}
+
+.transaction-item:last-child {
+  border-bottom: none;
+}
+
+.transaction-item:hover {
+  background: rgba(74, 85, 104, 0.3);
+}
+
+.transaction-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.transaction-merchant {
+  font-weight: 600;
+  color: #e2e8f0;
+  font-size: 0.9rem;
+}
+
+.transaction-date {
+  font-size: 0.8rem;
+  color: #a0aec0;
+}
+
+.transaction-amount {
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.transaction-amount.negative {
+  color: #fc8181;
+}
+
+.transactions-total {
+  padding: 1rem;
+  background: rgba(252, 129, 129, 0.1);
+  border-top: 1px solid #fc8181;
+  text-align: center;
+  color: #fc8181;
+  font-size: 0.95rem;
+}
+
+.no-transactions {
+  padding: 2rem;
+  text-align: center;
+  color: #a0aec0;
+}
+
+.no-transactions p {
+  margin: 0;
+  font-style: italic;
+}
+
+/* Current Balance Section */
+.current-balance-section {
+  text-align: center;
+  padding: 1rem;
+  background: rgba(74, 85, 104, 0.2);
+  border-radius: 8px;
+}
+
+.balance-calculation {
+  font-size: 0.8rem;
+  color: #a0aec0;
+  margin-top: 0.5rem;
+  font-family: 'Courier New', monospace;
+}
+
+/* Mobile Responsive */
 @media (max-width: 768px) {
-  .budget-category {
-    padding: 1rem; /* Reduced from 1.5rem */
+  .category-detail-summary {
+    flex-direction: column;
+    gap: 0.75rem;
   }
 
-  .budget-category-header {
+  .transaction-item {
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.75rem; /* Reduced from 1rem */
+    gap: 0.5rem;
   }
 
-  .budget-category-header h3 {
-    font-size: 1rem; /* Reduced from 1.125rem */
+  .transaction-amount {
+    align-self: flex-end;
   }
 
-  .budget-balance-amount {
-    font-size: 1.125rem; /* Reduced from 1.25rem */
-  }
-
-  .budget-summary-card {
-    padding: 1.25rem; /* Reduced from 1.5rem */
-  }
-
-  .budget-summary-amount {
-    font-size: 1.5rem; /* Reduced from 1.75rem */
+  .click-indicator {
+    position: static;
+    text-align: center;
+    margin-top: 0.5rem;
+    opacity: 1;
+    font-size: 0.75rem;
   }
 }
 
 @media (max-width: 480px) {
-  .budget-category {
-    padding: 0.875rem; /* Further reduced */
+  .balance-amount,
+  .allocation-amount,
+  .current-balance {
+    font-size: 1.1rem;
   }
 
-  .budget-category-header h3 {
-    font-size: 0.95rem; /* Further reduced */
+  .transaction-merchant {
+    font-size: 0.85rem;
   }
 
-  .budget-balance-amount {
-    font-size: 1rem; /* Further reduced */
+  .transaction-date {
+    font-size: 0.75rem;
   }
 
-  .budget-bar {
-    height: 10px; /* Further reduced for mobile */
-  }
-
-  .budget-summary-card {
-    padding: 1rem; /* Further reduced */
-  }
-
-  .budget-summary-amount {
-    font-size: 1.35rem; /* Further reduced */
-  }
-}
-
-/* Add a compact grid option for desktop */
-@media (min-width: 1200px) {
-  .budget-categories {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr); /* Two columns on larger screens */
-    gap: 1rem;
-  }
-}
-
-@media (min-width: 1600px) {
-  .budget-categories {
-    grid-template-columns: repeat(3, 1fr); /* Three columns on very large screens */
+  .transaction-amount {
+    font-size: 0.85rem;
   }
 }
