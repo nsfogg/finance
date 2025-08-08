@@ -361,6 +361,7 @@ interface TransactionDetail {
   id: string;
   amount: number;
   date: string;
+  name: string;
   merchant_name?: string;
 }
 
